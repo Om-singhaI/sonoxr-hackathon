@@ -49,6 +49,7 @@ This is the thesis of the whole project. Three commitments, enforced in code:
 | 🌐 **Live landing + patient viewer** | **[sonoxr-frontend.vercel.app](https://sonoxr-frontend.vercel.app)** |
 | 📝 **Technical write-up** | [`/writeup`](https://sonoxr-frontend.vercel.app/writeup) on the live site |
 | 🥽 **Quest 3 immersive scene** | open the viewer on a connected headset (falls back to WebXR on the web) |
+| 🛰️ **Ask it on ASI:One** | the SonoXR chat agent is live on **Agentverse** (`ASI Available`) — ask it a patient's ejection fraction in plain English |
 
 ---
 
@@ -76,7 +77,7 @@ This is the thesis of the whole project. Three commitments, enforced in code:
 
 ## 🧠 The AI stack
 
-SonoXR is wired to two AI services. Both follow the same rule: **degrade gracefully, never crash the demo.** If a key is missing, the feature falls back to grounded static text or the browser's built-in speech — the app keeps working and the status honestly reports `REAL_AI` vs `FALLBACK`.
+SonoXR is wired to two inference services — **Claude** and **Deepgram** — plus a **Fetch.ai agent layer** that hosts the heavy compute and a plain-English Q&A interface (see [§ Fetch.ai agent layer](#-fetchai-agent-layer)). The two inference services follow the same rule: **degrade gracefully, never crash the demo.** If a key is missing, the feature falls back to grounded static text or the browser's built-in speech — the app keeps working and the status honestly reports `REAL_AI` vs `FALLBACK`.
 
 ### 🤖 Claude — the analysis & narration agent
 
@@ -103,9 +104,9 @@ Deepgram closes the loop so a clinician can interact hands-free while a sterile 
 
 The full voice round-trip: the browser's `MediaRecorder` captures the question → **Deepgram Nova-2** transcribes it → **Claude** answers it, grounded in the patient data → **Deepgram Aura-2** speaks the answer back. Like Claude, Deepgram keys are read server-side only.
 
-### 🔌 Fetch AI
+### 🛰️ Fetch.ai — the agent layer
 
-> _Not currently integrated in this codebase._ The shipped AI stack is **Claude + Deepgram** (above). See **[Sponsor tracks & roadmap](#-sponsor-tracks--roadmap)** for where an agent framework like Fetch AI could slot in — e.g. wrapping the grounded analysis agent as an autonomous, discoverable uAgent. *(If you do have a Fetch AI component, point me at it and I'll document it accurately.)*
+The expensive reconstruction compute and a plain-English Q&A interface live in two **Fetch.ai uAgents**: a data-provider agent that bakes the heart mesh, and an **ASI:One** chat agent that answers clinical questions about real reconstructed patients. This is the part that makes SonoXR's cardiac data discoverable and queryable by *any* agent on the network — see **[§ Fetch.ai agent layer](#-fetchai-agent-layer)** below.
 
 ---
 
@@ -140,6 +141,23 @@ A clean DAG: `main → pipeline → stage modules`. Each stage decides **PRIMARY
 ## 🥽 The Quest 3 client
 
 Native mixed-reality scene built in Unity for the Meta Quest 3 (`backend/unity/SonoXR_Quest3/`). The reconstructed `.glb` is loaded with GLTFast, dressed with a custom crimson/holographic shader, and the low-confidence region is shown as a translucent zone inside the mesh. Runs **on-device** — no streaming a patient's scan to the cloud just to look at it. On machines without a headset, the web Patient Viewer provides a **WebXR fallback** (three.js) so the experience degrades to a browser view instead of failing.
+
+---
+
+## 🛰️ Fetch.ai agent layer
+
+**Heavy compute as a discoverable service.** SonoXR moves the expensive medical-imaging work **off the headset** and into two Fetch.ai uAgents. The Quest stays thin — it renders; the agents own the heavy, reusable, discoverable work.
+
+**1 · Data-provider agent — owns the expensive I/O.**
+Runs where the CAMUS dataset lives. When a patient is selected, it does the costly part: SimpleITK reads the volumetric scans, Simpson's biplane runs the reconstruction, and it bakes the GLB heart mesh. The Quest never touches raw medical I/O — it just renders what the agent produces.
+
+**2 · ASI:One chat agent — makes the cardiac data queryable in plain English.**
+Hosted on [Agentverse](https://agentverse.ai) (always-on, live right now with **`ASI Available`** status) and implementing `uagents_core`'s **Chat Protocol** with a published manifest, so ASI:One's LLM can route real queries to it. Anyone on ASI:One can ask *"what's patient0001's ejection fraction?"* and get back the LV ejection fraction, end-diastolic and end-systolic volumes, image quality, and the citation — all from real reconstructed patient data.
+
+**Why this design (deliberate engineering judgment).**
+The heart mesh still flows to the headset over plain **HTTP/GLB**, not a bespoke live socket — because the cost worth offloading is the medical-image I/O, not the rendering. So the agents own the part that's actually expensive, reusable, and discoverable. The payoff: the **same reconstruction that drives the AR heart is also a question-answering agent on ASI:One** — and the cardiac data becomes queryable by *any* agent on the network, not just this app.
+
+> **The vision:** a network of these — each medical modality as a discoverable Fetch.ai agent, composable by ASI:One.
 
 ---
 
@@ -200,6 +218,7 @@ Open `backend/unity/SonoXR_Quest3/` in Unity. Only the project **source** (`Asse
 **Web** — React · TypeScript · Vite · three.js / WebXR · Vercel serverless functions
 **XR** — Unity · Meta XR Interaction SDK · GLTFast · Quest 3 (Android build)
 **AI** — **Claude** (`claude-opus-4-8` analysis · `claude-sonnet-4-6` narration) · **Deepgram** (Nova-2 STT · Aura-2 TTS)
+**Agents** — **Fetch.ai** uAgents (`uagents_core` Chat Protocol) · hosted on **Agentverse** · discoverable via **ASI:One**
 **Data** — CAMUS apical echo dataset (2CH/4CH, ED/ES, expert LV masks)
 
 ---
@@ -218,7 +237,7 @@ In keeping with the whole point of this project:
 
 - **Voice (Deepgram)** — ✅ shipped: Nova-2 STT + Aura-2 TTS, the only voice integration that fit the architecture without distorting it.
 - **Claude** — ✅ shipped: grounded, uncertainty-aware analysis + AR narration.
-- **Agent frameworks (e.g. Fetch AI / uAgents)** — 🔭 candidate: wrap the grounded analysis agent as a discoverable, autonomous agent so other systems could query a reconstruction. *Not yet implemented.*
+- **Agents (Fetch.ai / ASI:One)** — ✅ shipped: two uAgents — a data-provider that runs the reconstruction and an ASI:One chat agent (Chat Protocol, hosted on Agentverse) that answers clinical questions about real reconstructed patients. See **[§ Fetch.ai agent layer](#-fetchai-agent-layer)**.
 - **Medical-education pivot** — 🔭 strongest repositioning: echo-interpretation training with **calibration-as-pedagogy**, occupying the uncontested intersection between SonoSim, Butterfly ScanLab, CAE Vimedix, and HeartWorks.
 
 ---
@@ -231,7 +250,7 @@ No live API keys are committed. All key material lives in git-ignored `.env` / `
 
 <div align="center">
 
-**SonoXR** — CAMUS dataset · Calibrated-honesty layer · Voice by Deepgram · Analysis by Claude
+**SonoXR** — CAMUS dataset · Calibrated-honesty layer · Voice by Deepgram · Analysis by Claude · Agents on Fetch.ai / ASI:One
 
 Built for a hackathon. Built to tell you the truth.
 

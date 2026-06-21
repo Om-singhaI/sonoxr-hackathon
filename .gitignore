@@ -49,6 +49,11 @@ D3D12/
 *.slnx
 *.vsconfig
 
+# ───────────────────────── Docs: keep only the root README ─────────────────────────
+# Ignore every README.md in subdirectories; keep just the top-level one.
+README.md
+!/README.md
+
 # ───────────────────────── OS / editor ─────────────────────────
 .DS_Store
 Thumbs.db
