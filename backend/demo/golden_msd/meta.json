@@ -1,0 +1,28 @@
+{
+  "data_source": "REAL",
+  "modality": "3D cardiac MRI (MSD Task02_Heart \u2014 left atrium)",
+  "task": "Task02_Heart",
+  "anatomy": "left atrium",
+  "volume_id": "la_003",
+  "spacing_mm_zyx": [
+    1.37,
+    1.25,
+    1.25
+  ],
+  "mesh_faces": 25340,
+  "mesh_volume_cm3": 93.0,
+  "extents_mm": [
+    89.16,
+    73.41,
+    53.78
+  ],
+  "watertight": true,
+  "recon_mode": "PRIMARY",
+  "method": "Left atrium reconstructed from MSD Task02_Heart expert MRI segmentation mask (label 1) via marching cubes \u2014 true 3D volume, real MRI voxel spacing. NOT ultrasound. NOT EF-capable.",
+  "citation": "Medical Segmentation Decathlon \u2014 medicaldecathlon.com. M. Antonelli et al., 'The Medical Segmentation Decathlon,' Nature Communications 13, 4128, 2022. Licence: CC-BY-SA 4.0.",
+  "is_synthetic_placeholder": false,
+  "narration": "This is the left atrium \u2014 the upper-left chamber of the heart that collects oxygenated blood returning from the lungs before it flows into the left ventricle. This is a true 3D shape from a real cardiac MRI scan (not ultrasound). Its reconstructed volume is about 93.0 cm\u00b3. It spans roughly 89\u00d773\u00d754 mm. The mesh was built from expert segmentation labels using marching cubes on the real MRI voxel volume \u2014 the geometry is the actual annotated anatomy, not a raw-intensity estimate.",
+  "narration_mode": "FALLBACK",
+  "narration_model": null,
+  "confidence_note": "Reconstructed from expert MRI segmentation labels \u2014 mesh geometry is reliable. Intensity-based artifacts are absent (mask-only reconstruction). Not a medical device."
+}

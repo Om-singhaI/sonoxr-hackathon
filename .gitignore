@@ -1,0 +1,57 @@
+# ───────────────────────── Secrets ─────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+# Unity runtime config holds live API keys — commit only the .example template
+**/StreamingAssets/sonoxr_config.json
+**/StreamingAssets/sonoxr_config.json.meta
+
+# ───────────────────────── Datasets / large raw data ─────────────────────────
+# Re-fetch with backend/scripts/download_sample_data.py
+data/
+*.nii
+*.nii.gz
+*.dcm
+
+# ───────────────────────── Python ─────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# ───────────────────────── Node / frontend ─────────────────────────
+node_modules/
+dist/
+.vite/
+*.log
+npm-debug.log*
+
+# ───────────────────────── Unity (keep Assets / ProjectSettings / Packages only) ─────────────────────────
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+.utmp/
+*_Data/
+*_BurstDebugInformation_DoNotShip/
+MonoBleedingEdge/
+D3D12/
+# generated solution / project files
+*.csproj
+*.sln
+*.slnx
+*.vsconfig
+
+# ───────────────────────── OS / editor ─────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,30 @@
+{
+  "patient": "patient0107",
+  "image_quality": "Medium",
+  "EDV_mL": 53.8,
+  "ESV_mL": 17.3,
+  "EF_pct": 68.0,
+  "reference_ef": 58.0,
+  "ef_vs_reference_pp": 10.0,
+  "n_discs": 20,
+  "spacing_mm": 0.30799999833106995,
+  "uncertainty_region": {
+    "region_name": "basal region (near mitral valve)",
+    "disc_range": [
+      14,
+      19
+    ],
+    "fraction_of_lv": "30%",
+    "reason": "Basal discs have systematically lower certainty: the LV-LA boundary is harder to locate precisely in apical views."
+  },
+  "narration": "This is the heart's left ventricle, shown beating between its fullest point (end-diastole) and its emptiest (end-systole). It holds about 53.8 mL when full and 17.3 mL after the beat, so it pumps out roughly 68.0% each cycle \u2014 the ejection fraction. This 3D shape was reconstructed from real expert-traced 2D apical views using Simpson's biplane method of discs \u2014 the clinical standard \u2014 not a 3D-echo volume scan.",
+  "narration_mode": "FALLBACK",
+  "narration_model": null,
+  "scan_4ch": "scan_4ch.png",
+  "scan_2ch": "scan_2ch.png",
+  "glb_ed": "lv_ed.glb",
+  "data_source": "REAL \u2014 CAMUS 2D apical echocardiography, expert _gt masks",
+  "honesty_note": "Real public patient ultrasound data, processed at build time. NOT live probe scanning. NOT a clinical measurement device. EF is a biplane geometric estimate.",
+  "citation": "CAMUS \u2014 S. Leclerc et al., 'Deep Learning for Segmentation using an Open Large-Scale Dataset in 2D Echocardiography,' IEEE TMI 38(9):2198-2210, 2019. doi:10.1109/TMI.2019.2900516",
+  "method": "3D LV reconstructed from CAMUS 2D apical views (2CH+4CH) via Simpson's biplane method of discs. NOT a 3D-echo volume acquisition."
+}

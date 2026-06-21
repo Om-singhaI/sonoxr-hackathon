@@ -1,0 +1,13 @@
+import { chromium } from 'playwright'
+const b = await chromium.launch({ args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] })
+const page = await b.newPage({ viewport:{width:1440,height:900} })
+const errs=[]; page.on('pageerror',e=>errs.push(e.message))
+await page.goto('https://sonoxr-frontend.vercel.app/patient/patient0168',{waitUntil:'networkidle',timeout:60000})
+await page.waitForTimeout(4000)
+await page.click('text=Why uncertain here?')
+await page.waitForTimeout(3000)
+const fallback = await page.evaluate(()=> document.body.innerText.toLowerCase().includes('mid-lateral wall'))
+const voice = await page.evaluate(()=> [...document.querySelectorAll('button')].some(b=>/ask by voice/i.test(b.textContent||'')))
+await page.screenshot({ path:'/tmp/live_patient_ai.png' })
+console.log(JSON.stringify({ fallbackAnswer: fallback, voiceButton: voice, errors: errs.length?errs:'none' }))
+await b.close()

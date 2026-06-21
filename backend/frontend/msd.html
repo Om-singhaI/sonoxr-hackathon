@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SonoXR · EchoAR — Left Atrium (cardiac MRI)</title>
+<!--
+  Iteration 7b — SECONDARY EXHIBIT: real 3D left atrium from MSD Task02_Heart.
+  Reconstructed from expert MRI segmentation mask (label 1 = left atrium) via
+  marching cubes on the true 3D voxel volume. MRI — NOT ultrasound. NO EF.
+  The CAMUS beating-LV + EF demo (camus.html) is the HERO.
+  Loads entirely from ./golden_msd/ — works fully offline.
+  Cite: M. Antonelli et al., Nature Communications 13, 4128, 2022 (CC-BY-SA 4.0).
+-->
+<script>
+  function addModule(src, onfail){const s=document.createElement('script');
+    s.type='module';s.src=src;if(onfail)s.onerror=onfail;document.head.appendChild(s);}
+  addModule('./vendor/model-viewer.min.js', () =>
+    addModule('https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js'));
+</script>
+<style>
+  :root{--bg:#0b0e13;--card:#151b25;--ink:#eef3fa;--muted:#93a0b2;--green:#43c08a;
+        --amber:#f5972b;--accent:#5b9dff;--mri:#a78bfa;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  #app{display:flex;flex-direction:column;height:100%;}
+  header{padding:10px 16px calc(8px + env(safe-area-inset-top));}
+  h1{font-size:16px;margin:4px 0 0;}
+  .badge{float:right;font-size:11px;font-weight:800;padding:4px 9px;
+    border-radius:999px;color:var(--mri);border:1px solid var(--mri);}
+  .secondary-note{font-size:11px;color:var(--amber);margin-top:3px;font-weight:600;}
+  #stage{position:relative;flex:1;min-height:0;background:#070a0f;}
+  model-viewer{width:100%;height:100%;--poster-color:#070a0f;}
+  #info{position:absolute;top:12px;left:12px;background:rgba(17,22,31,.82);
+    border:1px solid #2a3340;border-radius:14px;padding:10px 14px;max-width:240px;}
+  #info .label{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  #info .anat{font-size:18px;font-weight:900;line-height:1.1;color:var(--mri);}
+  #info .stats{font-size:12px;color:#dbe4ef;margin-top:6px;}
+  .card{background:var(--card);border-top:1px solid #222a36;padding:13px 16px;}
+  #narr{font-size:13.5px;line-height:1.5;}
+  .honest{font-size:12px;color:#cdd8e6;line-height:1.5;margin-top:8px;}
+  .honest b{color:var(--amber);}
+  .muted{color:var(--muted);}
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="badge">REAL DATA · MRI</span>
+    <h1>Left atrium — 3D cardiac MRI</h1>
+    <div class="secondary-note">Secondary exhibit · pipeline modality check</div>
+    <div class="muted" style="font-size:12px" id="src">loading…</div>
+  </header>
+
+  <div id="stage">
+    <model-viewer id="mv" camera-controls auto-rotate touch-action="pan-y"
+      shadow-intensity="1" exposure="1.1" ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="fixed" alt="Left atrium reconstructed from cardiac MRI (MSD Task02_Heart)">
+    </model-viewer>
+    <div id="info">
+      <div class="label">STRUCTURE</div>
+      <div class="anat">Left Atrium</div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="narr">…</div>
+    <div class="honest" id="honest"></div>
+    <div class="honest muted" id="cite"></div>
+    <div class="honest" style="margin-top:8px">
+      ★ Hero demo → <a href="./camus.html">beating 3D LV + EF (CAMUS)</a> ·
+      <a href="./ar.html">3D reconstruction + AR</a> ·
+      <a href="./echo.html">real echo cine</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  fetch('./golden_msd/meta.json', {cache:'no-store'})
+    .then(r => r.json())
+    .then(m => {
+      $('mv').src = './golden_msd/model.glb';
+      $('src').textContent = m.volume_id + ' · ' + m.task + ' · ' + (m.narration_mode || '');
+      $('stats').innerHTML =
+        'Volume: ~' + m.mesh_volume_cm3 + ' cm³' +
+        (m.extents_mm ? '<br>Extent: ' + m.extents_mm.map(v=>Math.round(v)).join('×') + ' mm' : '') +
+        '<br>Modality: MRI (not ultrasound)';
+      $('narr').textContent = m.narration || '';
+      $('honest').innerHTML =
+        '<b>Method:</b> ' + m.method +
+        '<br><b>Note:</b> ' + (m.confidence_note || '') +
+        ' This is a <b>secondary exhibit</b> — the pipeline is modality-agnostic. Not a medical device.';
+      $('cite').textContent = 'Data: ' + (m.citation || 'MSD Task02_Heart (Antonelli et al., 2022)');
+    })
+    .catch(() => {
+      $('src').innerHTML =
+        '<span style="color:#ec5b50">Could not load ./golden_msd/meta.json — ' +
+        'run <code>python scripts/build_msd_demo.py</code> and serve from the repo root.</span>';
+    });
+</script>
+</body>
+</html>

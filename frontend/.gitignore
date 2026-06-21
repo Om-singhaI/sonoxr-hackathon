@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+*.tsbuildinfo
+.vercel
+
+# local env (keep .env.example committed)
+.env
+.env.*
+!.env.example
+
+# logs
+*.log

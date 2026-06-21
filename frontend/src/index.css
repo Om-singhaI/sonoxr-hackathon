@@ -1,0 +1,39 @@
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+html,body{background:#07090B;margin:0;padding:0}
+body{overflow-x:hidden;font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+@keyframes sonoUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sonoFade{from{opacity:0}to{opacity:1}}
+@keyframes sonoCue{0%{transform:translateY(0);opacity:.35}50%{transform:translateY(7px);opacity:.9}100%{transform:translateY(0);opacity:.35}}
+@keyframes sonoPulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}}
+@keyframes sonoSweep{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+
+/* ===== app pages (login / dashboard / patient / writeup) ===== */
+@keyframes appUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes appBeat{0%,100%{transform:scale(1)}12%{transform:scale(1.07)}26%{transform:scale(1)}38%{transform:scale(1.04)}}
+@keyframes appPop{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+@keyframes appScan{0%{transform:translateY(-100%)}100%{transform:translateY(700%)}}
+/* focus styles for form inputs on auth/access pages */
+.app-input:focus,.app-sel:focus,.app-area:focus{outline:none;border-color:rgba(79,168,255,.6)!important;background:rgba(79,168,255,.05)!important}
+/* shared link-button hovers */
+.app-redbtn{transition:transform .2s ease,box-shadow .2s ease}
+.app-redbtn:hover{transform:translateY(-1px);box-shadow:0 12px 32px -8px rgba(225,29,51,.75)}
+.app-ghostbtn{transition:border-color .2s ease,background .2s ease}
+.app-ghostbtn:hover{border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.08)}
+/* login splits to one column on narrow screens */
+@media (max-width:860px){.login-grid{grid-template-columns:1fr!important}.login-grid > div:first-child{min-height:auto!important;padding:32px 28px!important}}
+
+/* hover states ported from the prototype's style-hover attributes */
+.sono-btn-primary{transition:transform .2s ease,box-shadow .2s ease}
+.sono-btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px -6px rgba(225,29,51,.7)}
+.sono-btn-ghost{transition:border-color .2s ease,background .2s ease}
+.sono-btn-ghost:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.07)}
+.sono-chip{transition:border-color .2s ease,background .2s ease}
+.sono-chip:hover{border-color:rgba(255,255,255,.26);background:rgba(255,255,255,.06)}
+.sono-pill{transition:border-color .2s ease,background .2s ease}
+.sono-pill:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.07)}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+}

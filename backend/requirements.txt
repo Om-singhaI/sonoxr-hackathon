@@ -1,0 +1,40 @@
+# =============================================================================
+# SonoXR / EchoAR backend — Python dependencies
+# =============================================================================
+# The PRIMARY (golden-demo) pipeline only needs the "core" + "DICOM I/O" blocks.
+# Everything under "optional" degrades gracefully if the wheel is unavailable
+# (e.g. on very new Python versions) — the code logs loudly and falls back.
+# -----------------------------------------------------------------------------
+
+# ---- Core web service --------------------------------------------------------
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9       # REQUIRED for FastAPI file uploads (POST /upload)
+
+# ---- Numerics / imaging (PRIMARY pipeline) -----------------------------------
+numpy>=1.24
+scipy>=1.10                   # 3D morphology + connected components (segmentation)
+scikit-image>=0.22            # marching_cubes + Otsu threshold (recon + seg)
+trimesh>=4.0                  # mesh build / Taubin smooth / GLB export (meshing)
+
+# ---- DICOM I/O ---------------------------------------------------------------
+SimpleITK>=2.3                # PREFERRED volumetric DICOM reader.
+                              #   NOTE: may not have a wheel on bleeding-edge
+                              #   Python (e.g. 3.14). If it won't install, the
+                              #   code automatically falls back to pydicom.
+pydicom>=2.4                  # Fallback DICOM reader + used by phantom generator.
+
+# ---- Narration (THE AI HEADLINE) ---------------------------------------------
+anthropic>=0.40               # Claude API client (model claude-sonnet-4-6)
+python-dotenv>=1.0            # loads ANTHROPIC_API_KEY from .env
+
+# ---- Robustness: 2D fallback path only ---------------------------------------
+opencv-python-headless>=4.8   # frame extraction (video) + 2D Otsu/morphology
+requests>=2.31                # sample-data downloader
+
+# ---- Optional accelerators / stretch upgrades (safe to omit) -----------------
+fast-simplification>=0.1      # backs trimesh quadric decimation; without it the
+                              #   mesh is still exported, just not decimated (logged).
+# open3d>=0.18                # Poisson reconstruction for the UltrasODM STRETCH
+                              #   path only. Heavy + no demo dependency. Uncomment
+                              #   only if you actually wire up UltrasODM.

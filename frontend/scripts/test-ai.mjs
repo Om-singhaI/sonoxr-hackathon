@@ -1,0 +1,12 @@
+import { chromium } from 'playwright'
+const b = await chromium.launch({ args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] })
+const page = await b.newPage({ viewport:{width:1440,height:900} })
+await page.goto('http://localhost:5173/patient/patient0112',{waitUntil:'networkidle',timeout:60000})
+await page.waitForTimeout(2500)
+await page.click('text=What is ejection fraction?')
+await page.waitForTimeout(2500)
+const found = await page.evaluate(()=> document.body.innerText.includes('(165 − 116) / 165'))
+const hasVoiceBtn = await page.evaluate(()=> document.body.innerText.includes('Ask by voice'))
+const hasReadAloud = await page.evaluate(()=> document.body.innerText.includes('Read Aloud · Deepgram'))
+console.log(JSON.stringify({ fallbackAnswerShown: found, hasVoiceBtn, hasReadAloud }))
+await b.close()

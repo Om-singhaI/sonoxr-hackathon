@@ -1,0 +1,10 @@
+{
+  "patients": [
+    "patient0001",
+    "patient0112",
+    "patient0168",
+    "patient0109",
+    "patient0107"
+  ],
+  "hero": "patient0001"
+}

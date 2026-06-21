@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>SonoXR / EchoAR</title>
+
+<!--
+  Self-contained AR page (TASK 4 + the L3 offline fallback of TASK 2).
+  60-second-wow design:
+   * On load AND on "Run Demo", the BUNDLED golden artifact (./golden/) shows
+     INSTANTLY (<1s, no backend) — never a blank state, never a long spinner.
+   * Run Demo then recomputes LIVE on the backend in the background and swaps the
+     model in if it succeeds; if the backend is unreachable we stay on the bundled
+     artifact (L3, fully offline).
+   * model-viewer is VENDORED locally (./vendor) so the 3D/AR wow works offline;
+     falls back to CDN if the local copy is missing.
+   * Mobile-first; prominent "View in AR".
+  NOTE: this build shows volumetric reconstruction + uncertainty narration. There
+  is no EF / beating-heart in this codebase (not built) — we do not display one.
+-->
+
+<script>
+  // Load model-viewer: local vendor first (offline-safe), CDN as fallback.
+  function addModule(src, onfail) {
+    const s = document.createElement('script');
+    s.type = 'module'; s.src = src; if (onfail) s.onerror = onfail;
+    document.head.appendChild(s);
+  }
+  addModule('./vendor/model-viewer.min.js', () =>
+    addModule('https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js'));
+  setTimeout(() => {           // belt-and-suspenders: if neither defined, try CDN
+    if (!customElements.get('model-viewer') && !window.__cdnTried) {
+      window.__cdnTried = true;
+      addModule('https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js');
+    }
+  }, 2500);
+</script>
+
+<style>
+  :root { --bg:#0b0e13; --card:#151b25; --ink:#eef3fa; --muted:#93a0b2;
+          --amber:#f5972b; --green:#43c08a; --red:#ec5b50; --accent:#5b9dff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  #app { display:flex; flex-direction:column; height:100%; }
+  header { padding:10px 16px calc(10px + env(safe-area-inset-top)); }
+  h1 { font-size:16px; margin:0; letter-spacing:.2px; }
+  .layer { float:right; font-size:11px; font-weight:800; padding:4px 9px;
+    border-radius:999px; border:1px solid #2a3340; color:var(--muted); }
+  .layer.live { color:var(--green); border-color:var(--green); }
+  .layer.cached { color:var(--amber); border-color:var(--amber); }
+  .layer.offline { color:var(--accent); border-color:var(--accent); }
+
+  #stage { position:relative; flex:1; min-height:0; background:#070a0f; }
+  model-viewer { width:100%; height:100%; --poster-color:#070a0f; }
+  #fallbackImg { width:100%; height:100%; object-fit:contain; display:none; }
+
+  /* Floating info card over the model */
+  #card { position:absolute; left:12px; right:12px; bottom:12px; background:rgba(17,22,31,.86);
+    backdrop-filter:blur(6px); border:1px solid #232c39; border-radius:16px; padding:13px 15px; }
+  .titlerow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .anat { font-size:17px; font-weight:800; }
+  .ovl { font-size:12px; font-weight:800; padding:3px 9px; border-radius:999px; }
+  .ovl.high { color:var(--green); background:rgba(67,192,138,.14); }
+  .ovl.medium { color:var(--amber); background:rgba(245,151,43,.14); }
+  .ovl.low { color:var(--red); background:rgba(236,91,80,.14); }
+  #narr { font-size:13.5px; line-height:1.45; color:#dbe4ef; margin-top:8px; }
+  #rescan { display:none; margin-top:9px; font-size:13px; padding:9px 11px; border-radius:10px;
+    background:rgba(236,91,80,.12); border:1px solid var(--red); }
+  #rescan b { color:var(--red); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+  .chip { font-size:11.5px; padding:4px 9px; border-radius:8px; border:1px solid #2a3340; color:var(--muted); }
+  .chip.high { border-color:var(--green); } .chip.medium { border-color:var(--amber); }
+  .chip.low { border-color:var(--red); color:var(--ink); }
+
+  footer { padding:12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  #run { width:100%; padding:16px; font-size:18px; font-weight:800; border:0; border-radius:14px;
+    background:var(--accent); color:#06101f; cursor:pointer; }
+  #run:active { transform:scale(.99); }
+  #hint { text-align:center; color:var(--muted); font-size:12px; margin-top:8px; }
+  details { margin-top:8px; } summary { color:var(--muted); font-size:12px; cursor:pointer; }
+  input { width:100%; margin-top:6px; background:#0d121a; border:1px solid #2a3340; color:var(--ink);
+    padding:8px 10px; border-radius:9px; font-size:13px; }
+  .err { color:var(--red); }
+</style>
+</head>
+
+<body>
+<div id="app">
+  <header>
+    <span id="layerBadge" class="layer">…</span>
+    <h1>SonoXR · EchoAR</h1>
+  </header>
+
+  <div id="stage">
+    <model-viewer id="mv" camera-controls auto-rotate touch-action="pan-y"
+      shadow-intensity="1" exposure="1.15" ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto" alt="Reconstructed anatomy"></model-viewer>
+    <img id="fallbackImg" alt="Reconstruction preview">
+    <div id="card">
+      <div class="titlerow">
+        <span class="anat" id="anat">Reconstruction</span>
+        <span class="ovl" id="ovl"></span>
+      </div>
+      <div id="narr">Press <b>Run Demo</b> to reconstruct and narrate.</div>
+      <div class="chips" id="chips"></div>
+      <div id="rescan"></div>
+    </div>
+  </div>
+
+  <footer>
+    <button id="run">▶  Run Demo</button>
+    <div id="hint">Tap <b>Run Demo</b> · drag to orbit · use <b>View in AR</b> on a phone.<br>
+      ★ Beating 3D LV + EF (real CAMUS) → <a href="./camus.html" style="color:#5b9dff">open camus.html</a>
+      · Real echo cine → <a href="./echo.html" style="color:#5b9dff">echo.html</a>
+      · Left atrium (cardiac MRI) → <a href="./msd.html" style="color:#a78bfa">msd.html</a></div>
+    <details>
+      <summary>backend settings</summary>
+      <input id="backend" type="text">
+    </details>
+  </footer>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const mv = $('mv');
+
+  // Backend URL: same origin if served from :8000, else localhost:8000.
+  (function () {
+    const o = location.origin;
+    $('backend').value = (o.startsWith('http') && location.port === '8000') ? o : 'http://localhost:8000';
+  })();
+  const backend = () => $('backend').value.replace(/\/+$/, '');
+
+  function setLayer(text, cls) { const b=$('layerBadge'); b.textContent=text; b.className='layer '+(cls||''); }
+
+  function showInfo(meta) {
+    if (meta.anatomy_label) $('anat').textContent = meta.anatomy_label;
+    if (meta.narration) $('narr').textContent = meta.narration;
+    const conf = meta.confidence || {};
+    const ovl = $('ovl');
+    if (conf.overall != null) {
+      ovl.textContent = 'confidence ' + conf.overall + ' · ' + (conf.overall_label || '');
+      ovl.className = 'ovl ' + (conf.overall_label || 'high');
+    } else { ovl.textContent = ''; }
+    const chips = $('chips'); chips.innerHTML = '';
+    (conf.per_region || []).forEach(r => {
+      const c = document.createElement('span');
+      c.className = 'chip ' + (r.label || 'high');
+      c.textContent = r.region + ' ' + r.confidence;
+      chips.appendChild(c);
+    });
+    const low = conf.low_confidence_regions || [];
+    const rs = $('rescan');
+    if (low.length) {
+      rs.style.display = 'block';
+      rs.innerHTML = '⚠ <b>Re-scan recommended</b> — the <b>' + low.join(', ') + '</b> ' +
+        (low.length > 1 ? 'were' : 'was') + ' harder to capture clearly.';
+    } else { rs.style.display = 'none'; }
+  }
+
+  function setModel(url) {
+    if (customElements.get('model-viewer')) {
+      mv.style.display = 'block'; $('fallbackImg').style.display = 'none';
+      mv.src = url;
+    } else {
+      // model-viewer lib unavailable (offline + no vendor): show a still preview if we have one.
+      mv.style.display = 'none';
+      const img = $('fallbackImg');
+      img.src = '../preview/us_placeholder_turntable.png';  // best-effort static still
+      img.style.display = 'block';
+    }
+  }
+
+  // ---- INSTANT: load the bundled golden artifact (no backend, L3-ready) ----
+  async function loadBundled() {
+    setLayer('OFFLINE · bundled (L3)', 'offline');
+    setModel('./golden/model.glb');
+    try {
+      const meta = await (await fetch('./golden/golden_meta.json', {cache:'no-store'})).json();
+      showInfo(meta);
+    } catch (_) { /* keep defaults */ }
+  }
+
+  // ---- Run Demo: instant bundled, then upgrade to LIVE in the background ----
+  async function runDemo() {
+    $('run').disabled = true;
+    await loadBundled();                       // heart/organ visible immediately
+    try {
+      const r = await fetch(backend() + '/demo', { method:'POST' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      if (d.demo_layer === 'L1_LIVE') setLayer('LIVE (L1)', 'live');
+      else setLayer('CACHED (L2)', 'cached');
+      setModel(backend() + d.model_url);       // swap to the server result
+      showInfo({ anatomy_label: d.is_synthetic_placeholder
+                   ? 'Synthetic placeholder (organ-like)' : 'Reconstructed anatomy',
+                 narration: d.narration, confidence: d.confidence });
+    } catch (e) {
+      // Backend unreachable -> stay on the bundled artifact (L3 offline). No error wall.
+      setLayer('OFFLINE · bundled (L3)', 'offline');
+      $('narr').insertAdjacentHTML('beforeend',
+        ' <span class="err">(backend offline — showing bundled golden artifact)</span>');
+    } finally {
+      $('run').disabled = false;
+    }
+  }
+
+  $('run').addEventListener('click', runDemo);
+  // Pre-warm: show the bundled model the instant the page opens (zero blank state).
+  window.addEventListener('load', loadBundled);
+</script>
+</body>
+</html>

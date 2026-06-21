@@ -1,0 +1,21 @@
+{
+  "data_source": "REAL",
+  "modality": "2D echocardiography (CAMUS) -> Simpson's biplane 3D LV",
+  "patient": "patient0001",
+  "image_quality": "Good",
+  "EDV_mL": 91.0,
+  "ESV_mL": 32.7,
+  "EF_pct": 64.0,
+  "reference_ef": 54.0,
+  "ef_vs_reference_pp": 10.0,
+  "n_discs": 20,
+  "spacing_mm": 0.30799999833106995,
+  "beating": true,
+  "method": "3D LV reconstructed from CAMUS 2D apical views (2CH+4CH) via Simpson's biplane method of discs; EF by the clinical biplane formula. NOT a 3D-echo volume acquisition.",
+  "citation": "CAMUS dataset \u2014 S. Leclerc et al., 'Deep Learning for Segmentation using an Open Large-Scale Dataset in 2D Echocardiography', IEEE TMI 38(9):2198-2210, 2019. doi:10.1109/TMI.2019.2900516",
+  "is_synthetic_placeholder": false,
+  "narration": "This is the heart's left ventricle, shown beating between its fullest point (end-diastole) and its emptiest (end-systole). It holds about 91.0 mL when full and 32.7 mL after the beat, so it pumps out roughly 64.0% each cycle \u2014 the ejection fraction. This 3D shape was reconstructed from real expert-traced 2D apical views using Simpson's biplane method of discs \u2014 the clinical standard \u2014 not a 3D-echo volume scan.",
+  "narration_mode": "FALLBACK",
+  "narration_model": null,
+  "confidence_note": "Expert-annotated masks (CAMUS, image quality 'Good'). Biplane is a geometric estimate; apical foreshortening and the elliptical-disc assumption are its known limitations."
+}

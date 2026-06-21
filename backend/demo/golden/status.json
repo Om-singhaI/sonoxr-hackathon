@@ -1,0 +1,52 @@
+{
+  "job_id": "cd99e690795c",
+  "input_type": "dicom_series_dir",
+  "source_path": "/Users/omsinghal/Desktop/UCB/data/sample/phantom_dicom",
+  "anatomy_label": "a SYNTHETIC PLACEHOLDER phantom (organ-like model, NOT a real scan)",
+  "is_synthetic_placeholder": true,
+  "modality": "ultrasound",
+  "data_source": "SYNTHETIC_PLACEHOLDER",
+  "status": "done",
+  "current_stage": "done",
+  "error": null,
+  "created_at": "2026-06-14T20:06:11",
+  "updated_at": "2026-06-14T20:06:12",
+  "stages": {
+    "ingestion": {
+      "status": "done",
+      "mode": "PRIMARY",
+      "detail": "DICOM series (96 slices) via SimpleITK. | modality=ultrasound"
+    },
+    "preprocessing": {
+      "status": "done",
+      "mode": "gradient_anisotropic_diffusion(SimpleITK)",
+      "detail": "US preprocessing: normalize(1-99pct->0-255) -> gradient_anisotropic_diffusion(SimpleITK) -> clahe(per-slice)"
+    },
+    "segmentation": {
+      "status": "done",
+      "mode": "PRIMARY",
+      "detail": "Otsu 3D threshold + morphology [US-tuned (closing x2, on denoised volume)] + largest of 1 components (dominant frac=1.00)."
+    },
+    "reconstruction": {
+      "status": "done",
+      "mode": "PRIMARY",
+      "detail": "Marching cubes on real volume mask (243299 voxels, spacing(z,y,x)=(0.6, 0.45, 0.45) mm)."
+    },
+    "meshing": {
+      "status": "done",
+      "mode": "PRIMARY (no decimation)",
+      "detail": "GLB exported: 35770 verts / 71536 faces; smoothed (Taubin x10); no decimation."
+    },
+    "narration": {
+      "status": "done",
+      "mode": "FALLBACK",
+      "detail": "ANTHROPIC_API_KEY not set; used templated narration."
+    }
+  },
+  "artifacts": {
+    "glb": "/Users/omsinghal/Desktop/UCB/data/jobs/cd99e690795c/model.glb",
+    "narration": "/Users/omsinghal/Desktop/UCB/data/jobs/cd99e690795c/narration.json"
+  },
+  "frozen_golden": true,
+  "frozen_at": "2026-06-14T20:06:12"
+}

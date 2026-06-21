@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SonoXR · EchoAR — real beating heart</title>
+<!--
+  Iteration 5 — REAL 2D beating-heart demo (EchoNet 3d-echo).
+  Plays the REAL echo cine + the real cardiac-rhythm curve + honest narration.
+  This dataset is 2D + time (a cine), NOT a 3D volume — so this is a faithful 2D
+  player, not a fabricated 3D reconstruction. Everything loads from ./golden_echo/
+  (bundled), so the page works FULLY OFFLINE with no backend (inherently L3).
+  HONESTY: we show real motion/rhythm + ED/ES timing; we do NOT claim an LV trace,
+  fractional-area-change, or ejection fraction (those need a trained model).
+-->
+<style>
+  :root{--bg:#0b0e13;--card:#151b25;--ink:#eef3fa;--muted:#93a0b2;--green:#43c08a;
+        --amber:#f5972b;--red:#ec5b50;--accent:#5b9dff;}
+  *{box-sizing:border-box;} body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  header{padding:12px 16px;border-bottom:1px solid #222a36;}
+  h1{font-size:16px;margin:0;} .sub{font-size:12px;color:var(--muted);margin-top:3px;}
+  a{color:var(--accent);} .wrap{max-width:560px;margin:0 auto;padding:14px 16px;}
+  .badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;
+    color:var(--green);border:1px solid var(--green);}
+  video{width:100%;border-radius:14px;background:#070a0f;display:block;margin-top:12px;}
+  img.curve{width:100%;border-radius:12px;margin-top:12px;border:1px solid #222a36;}
+  .card{background:var(--card);border:1px solid #222a36;border-radius:14px;padding:13px 15px;margin-top:12px;}
+  #narr{font-size:14px;line-height:1.5;}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px;}
+  .chip{font-size:11.5px;padding:4px 9px;border-radius:8px;border:1px solid #2a3340;color:var(--muted);}
+  .chip.high{border-color:var(--green);} .chip.medium{border-color:var(--amber);}
+  .chip.low{border-color:var(--red);color:var(--ink);}
+  .honest{font-size:12.5px;line-height:1.5;color:#cdd8e6;}
+  .honest b{color:var(--amber);}
+  .kvs{font-size:12.5px;color:var(--muted);margin-top:6px;}
+  .err{color:var(--red);}
+</style>
+</head>
+<body>
+<header>
+  <span class="badge" id="badge">REAL DATA</span>
+  <h1 style="margin-top:6px">SonoXR · EchoAR — real beating heart</h1>
+  <div class="sub" id="source">loading…</div>
+</header>
+
+<div class="wrap">
+  <video id="vid" autoplay loop muted playsinline></video>
+  <img class="curve" id="curve" alt="cardiac rhythm curve">
+
+  <div class="card">
+    <div id="narr">…</div>
+    <div class="chips" id="chips"></div>
+    <div class="kvs" id="kvs"></div>
+  </div>
+
+  <div class="card honest">
+    <b>What this is — and what we don't claim.</b><br>
+    This is a <b>real 2D echocardiogram</b> (a cine of a beating heart) from the public
+    EchoNet 3d-echo dataset. The released files are <b>2D + time</b>, not 3D volumes, so
+    we faithfully play the real clip rather than fabricate a 3D mesh. The <b>cardiac
+    motion and rhythm are real</b>, and ED/ES are approximate <b>timing</b>. We deliberately
+    do <b>NOT</b> report an LV trace, fractional-area-change, or ejection fraction — a
+    clinically meaningful chamber border needs a trained segmentation model (the
+    approach CAMUS/EchoNet use), not raw pixel thresholds. Not a medical device.
+    <div class="kvs" id="cite"></div>
+  </div>
+
+  <div class="sub" style="margin-top:14px">
+    Looking for the 3D reconstruction + AR demo? → <a href="./ar.html">open ar.html</a>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  fetch('./golden_echo/meta.json', {cache:'no-store'})
+    .then(r => r.json())
+    .then(m => {
+      $('vid').src = './golden_echo/heart.mp4';
+      $('curve').src = './golden_echo/curve.png';
+      $('source').textContent = m.source + '  ·  ' + m.n_frames + ' frames @ ' + m.fps + ' fps';
+      $('narr').textContent = m.narration || '';
+      const c = m.confidence || {};
+      const chips = $('chips');
+      (c.per_region || []).forEach(r => {
+        const el = document.createElement('span');
+        el.className = 'chip ' + (r.label || 'high');
+        el.textContent = r.region + ' · ' + r.confidence + ' (' + r.label + ')';
+        chips.appendChild(el);
+      });
+      const low = (c.low_confidence_regions || []);
+      $('kvs').innerHTML =
+        'ED frame ' + m.ed_frame + ' · ES frame ' + m.es_frame +
+        ' · relative dark-pool change ' + m.rel_darkpool_change_pct +
+        '% <i>(uncalibrated proxy — NOT FAC/EF)</i>' +
+        (low.length ? '<br>⚠ harder to capture: <b>' + low.join(', ') + '</b>' : '');
+      $('cite').textContent = 'Data: ' + (m.citation || 'EchoNet 3d-echo');
+    })
+    .catch(e => {
+      $('source').innerHTML = '<span class="err">Could not load ./golden_echo/meta.json — '
+        + 'run <code>python scripts/build_echo_demo.py</code> and serve from the repo root.</span>';
+    });
+</script>
+</body>
+</html>

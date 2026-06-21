@@ -1,0 +1,89 @@
+{
+  "data_source": "REAL",
+  "modality": "ultrasound (2D cine)",
+  "source": "EchoNet 3d-echo (Person A, file A_0), apical view (US region 0)",
+  "citation": "EchoNet 3d-echo dataset, https://github.com/echonet/3d-echo (release v1.0). Used per the dataset's license; please cite the EchoNet authors.",
+  "is_synthetic_placeholder": false,
+  "two_d_plus_time": true,
+  "anatomy_label": "a real 2D apical echocardiogram (beating heart)",
+  "fps": 6.21,
+  "n_frames": 18,
+  "ed_frame": 10,
+  "es_frame": 2,
+  "rel_darkpool_change_pct": 21.0,
+  "cardiac_motion": [
+    1.0,
+    1.0,
+    0.659,
+    0.927,
+    0.599,
+    0.66,
+    0.738,
+    0.916,
+    0.623,
+    0.873,
+    0.563,
+    0.667,
+    0.752,
+    0.888,
+    0.767,
+    0.857,
+    0.566,
+    0.0
+  ],
+  "darkpool": [
+    0.682,
+    0.0,
+    0.068,
+    0.593,
+    0.537,
+    0.679,
+    0.623,
+    0.371,
+    0.286,
+    0.659,
+    0.617,
+    1.0,
+    0.528,
+    0.173,
+    0.227,
+    0.605,
+    0.73,
+    0.73
+  ],
+  "confidence": {
+    "overall": 0.523,
+    "overall_label": "low",
+    "per_region": [
+      {
+        "region": "apical (near-field)",
+        "confidence": 0.85,
+        "label": "high"
+      },
+      {
+        "region": "mid-ventricle",
+        "confidence": 0.35,
+        "label": "low"
+      },
+      {
+        "region": "basal (far-field)",
+        "confidence": 0.37,
+        "label": "low"
+      }
+    ],
+    "low_confidence_regions": [
+      "mid-ventricle",
+      "basal (far-field)"
+    ],
+    "method": "per-depth boundary sharpness (apical clutter / far-field dropout)"
+  },
+  "measurements": {
+    "ejection_fraction": null,
+    "fractional_area_change": null
+  },
+  "lv_segmentation_reliable": false,
+  "caveat": "Real 2D echo cine. Cardiac MOTION and dark-pool PULSATION are measured from real pixels; ED/ES are approximate TIMING. We do NOT report an LV trace, FAC, or EF \u2014 a clinical border needs a trained segmentation model (e.g. the U-Nets CAMUS/EchoNet use).",
+  "narration": "This is a real 2D ultrasound of a beating heart \u2014 an apical view showing the cardiac chambers, captured live across the cardiac cycle. The mid-ventricle, basal (far-field) were harder to see clearly, which is common in echo \u2014 that region would benefit from a better acoustic window. We show the real motion and rhythm; we deliberately do not report an ejection fraction or exact chamber size here \u2014 those need a trained segmentation model, not raw pixel thresholds.",
+  "narration_mode": "FALLBACK",
+  "narration_model": null
+}

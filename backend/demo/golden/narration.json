@@ -1,0 +1,72 @@
+{
+  "narration": "Heads up: this is a SYNTHETIC PLACEHOLDER volume, not a real scan \u2014 it's here so the pipeline can run end to end before a real scan is loaded. In front of you is a 3D reconstruction of a SYNTHETIC PLACEHOLDER phantom (organ-like model, NOT a real scan). It measures roughly 29.56 cm\u00b3. The lower portion was harder to capture clearly \u2014 a re-scan of that area would give a sharper, more confident view.",
+  "mode": "FALLBACK",
+  "model": null,
+  "summary": {
+    "anatomy_label": "a SYNTHETIC PLACEHOLDER phantom (organ-like model, NOT a real scan)",
+    "is_synthetic_placeholder": true,
+    "approx_size": {
+      "segmented_volume_mm3": 29560.8,
+      "segmented_volume_cm3": 29.56,
+      "mesh_volume_mm3": 29377.4,
+      "bounding_box_mm": [
+        38.77,
+        37.25,
+        40.47
+      ],
+      "voxel_spacing_mm_zyx": [
+        0.6,
+        0.45,
+        0.45
+      ]
+    },
+    "pipeline_paths": {
+      "ingestion": "PRIMARY",
+      "preprocessing": "gradient_anisotropic_diffusion(SimpleITK)",
+      "segmentation": "PRIMARY",
+      "reconstruction": "PRIMARY",
+      "meshing": "PRIMARY (no decimation)",
+      "narration": null
+    },
+    "confidence": {
+      "overall": 0.757,
+      "overall_label": "high",
+      "low_confidence_regions": [
+        "lower portion"
+      ],
+      "per_region": [
+        {
+          "region": "upper portion",
+          "z_range": [
+            16,
+            37
+          ],
+          "confidence": 0.811,
+          "label": "high"
+        },
+        {
+          "region": "central portion",
+          "z_range": [
+            37,
+            59
+          ],
+          "confidence": 0.922,
+          "label": "high"
+        },
+        {
+          "region": "lower portion",
+          "z_range": [
+            59,
+            81
+          ],
+          "confidence": 0.527,
+          "label": "low"
+        }
+      ]
+    },
+    "mesh": {
+      "triangles": 71536,
+      "watertight": true
+    }
+  }
+}

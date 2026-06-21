@@ -1,0 +1,10 @@
+import { chromium } from 'playwright'
+const b = await chromium.launch({ args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] })
+const page = await b.newPage({ viewport:{width:390,height:844}, deviceScaleFactor:2, isMobile:true, hasTouch:true })
+const errs=[]; page.on('console',m=>{if(m.type()==='error')errs.push(m.text())}); page.on('pageerror',e=>errs.push('PE '+e.message))
+await page.goto('https://sonoxr-frontend.vercel.app/',{waitUntil:'networkidle',timeout:60000})
+await page.waitForTimeout(7000)
+const r = await page.evaluate(()=>({ scrollW:document.documentElement.scrollWidth, clientW:document.documentElement.clientWidth, sections:document.querySelectorAll('section').length, canvas:document.getElementById('sono-hero-canvas')?.style.opacity }))
+await page.screenshot({path:'/tmp/live_mobile.png'})
+console.log('live mobile:', JSON.stringify(r), '| errors:', errs.length?errs.join(' | '):'none')
+await b.close()

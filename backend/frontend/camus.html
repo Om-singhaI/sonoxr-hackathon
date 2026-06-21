@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SonoXR · EchoAR — beating 3D LV (CAMUS)</title>
+<!--
+  Iteration 6 — REAL 3D left ventricle, beating, with ejection fraction.
+  The LV was reconstructed from real expert-annotated CAMUS 2D apical views
+  (2CH + 4CH, ED + ES) via Simpson's biplane method of discs — the clinical
+  standard — NOT a 3D-echo volume acquisition. beating.glb morphs ED<->ES.
+  Everything loads from ./golden_camus/ (bundled) -> works fully OFFLINE.
+  model-viewer is vendored (./vendor) for offline; CDN is only a fallback.
+  Cite: Leclerc et al., IEEE TMI 2019 (doi:10.1109/TMI.2019.2900516).
+-->
+<script>
+  function addModule(src, onfail){const s=document.createElement('script');
+    s.type='module';s.src=src;if(onfail)s.onerror=onfail;document.head.appendChild(s);}
+  addModule('./vendor/model-viewer.min.js', () =>
+    addModule('https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js'));
+</script>
+<style>
+  :root{--bg:#0b0e13;--card:#151b25;--ink:#eef3fa;--muted:#93a0b2;--green:#43c08a;
+        --amber:#f5972b;--red:#ec5b50;--accent:#5b9dff;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  #app{display:flex;flex-direction:column;height:100%;}
+  header{padding:10px 16px calc(8px + env(safe-area-inset-top));}
+  h1{font-size:16px;margin:4px 0 0;} .badge{float:right;font-size:11px;font-weight:800;
+    padding:4px 9px;border-radius:999px;color:var(--green);border:1px solid var(--green);}
+  #stage{position:relative;flex:1;min-height:0;background:#070a0f;}
+  model-viewer{width:100%;height:100%;--poster-color:#070a0f;}
+  /* big EF readout */
+  #ef{position:absolute;top:12px;left:12px;background:rgba(17,22,31,.82);
+    border:1px solid #2a3340;border-radius:14px;padding:10px 14px;}
+  #ef .big{font-size:40px;font-weight:900;line-height:1;color:var(--accent);}
+  #ef .lab{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  #ef .vols{font-size:12.5px;color:#dbe4ef;margin-top:6px;}
+  #ef .ref{font-size:11px;color:var(--muted);margin-top:3px;}
+  #ctl{position:absolute;bottom:12px;left:12px;}
+  #play{background:var(--accent);color:#06101f;border:0;font-weight:800;padding:10px 16px;
+    border-radius:12px;font-size:14px;cursor:pointer;}
+  .card{background:var(--card);border-top:1px solid #222a36;padding:13px 16px;}
+  #narr{font-size:13.5px;line-height:1.5;}
+  .honest{font-size:12px;color:#cdd8e6;line-height:1.5;margin-top:8px;}
+  .honest b{color:var(--amber);} .muted{color:var(--muted);}
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="badge">REAL DATA · CAMUS</span>
+    <h1>Beating 3D left ventricle</h1>
+    <div class="muted" style="font-size:12px" id="src">loading…</div>
+  </header>
+
+  <div id="stage">
+    <model-viewer id="mv" autoplay camera-controls touch-action="pan-y"
+      shadow-intensity="1" exposure="1.1" ar ar-modes="webxr scene-viewer quick-look"
+      ar-scale="fixed" alt="Beating left ventricle reconstructed from CAMUS"></model-viewer>
+    <div id="ef">
+      <div class="lab">EJECTION FRACTION</div>
+      <div class="big" id="efval">—</div>
+      <div class="vols" id="vols"></div>
+      <div class="ref" id="ref"></div>
+    </div>
+    <div id="ctl"><button id="play">⏸ Pause cycle</button></div>
+  </div>
+
+  <div class="card">
+    <div id="narr">…</div>
+    <div class="honest" id="honest"></div>
+    <div class="honest muted" id="cite"></div>
+    <div class="honest" style="margin-top:8px">
+      Other demos → <a href="./ar.html">3D reconstruction + AR</a> ·
+      <a href="./echo.html">real beating-heart echo cine</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const mv = $('mv');
+  let playing = true;
+  $('play').addEventListener('click', () => {
+    playing = !playing;
+    if (playing) { mv.play(); $('play').textContent = '⏸ Pause cycle'; }
+    else { mv.pause(); $('play').textContent = '▶ Play cycle'; }
+  });
+
+  fetch('./golden_camus/meta.json', {cache:'no-store'})
+    .then(r => r.json())
+    .then(m => {
+      // animated morph glb if present, else static ED
+      mv.src = (m.beating ? './golden_camus/beating.glb' : './golden_camus/lv_ed.glb');
+      $('efval').textContent = (m.EF_pct != null ? m.EF_pct + '%' : '—');
+      $('vols').textContent = 'EDV ' + m.EDV_mL + ' mL · ESV ' + m.ESV_mL + ' mL';
+      $('ref').textContent = (m.reference_ef != null)
+        ? ('CAMUS reference EF ' + m.reference_ef + '%  (Δ ' + (m.ef_vs_reference_pp>=0?'+':'') + m.ef_vs_reference_pp + ' pp)')
+        : '';
+      $('src').textContent = m.patient + ' · image quality ' + m.image_quality +
+        ' · ' + m.n_discs + ' discs';
+      $('narr').textContent = m.narration || '';
+      $('honest').innerHTML = '<b>Method:</b> ' + m.method +
+        '<br><b>Honest note:</b> ' + (m.confidence_note || '') +
+        ' Not a medical device.';
+      $('cite').textContent = 'Data: ' + (m.citation || 'CAMUS (Leclerc et al., 2019)');
+    })
+    .catch(e => {
+      $('src').innerHTML = '<span style="color:#ec5b50">Could not load ./golden_camus/meta.json — '
+        + 'run <code>python scripts/build_camus_demo.py</code> and serve from the repo root.</span>';
+    });
+</script>
+</body>
+</html>

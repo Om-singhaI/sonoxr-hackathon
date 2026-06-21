@@ -1,0 +1,4 @@
+{
+  "anthropic_api_key": "YOUR_ANTHROPIC_API_KEY_HERE",
+  "deepgram_api_key": "YOUR_DEEPGRAM_API_KEY_HERE"
+}

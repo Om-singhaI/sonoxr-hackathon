@@ -1,0 +1,21 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SonoXR — AR preview</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+  body{margin:0;background:#11151c;color:#cdd6e3;font-family:system-ui,sans-serif}
+  header{padding:14px 18px}
+  h1{font-size:16px;margin:0}
+  p{font-size:13px;color:#8b97a8;margin:4px 0 0}
+  model-viewer{width:100vw;height:80vh;background:#0c0f14}
+</style></head>
+<body>
+  <header>
+    <h1>SonoXR / EchoAR — reconstructed model</h1>
+    <p>Drag to orbit. On a phone/tablet, tap <b>View in AR</b> to place it in your room (this is what the AR frontend renders).</p>
+  </header>
+  <model-viewer src="model.glb" alt="Reconstructed anatomy"
+                camera-controls auto-rotate shadow-intensity="1"
+                exposure="1.1" ar ar-modes="webxr scene-viewer quick-look">
+  </model-viewer>
+</body></html>
